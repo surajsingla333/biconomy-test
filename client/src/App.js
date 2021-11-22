@@ -4,7 +4,7 @@ import TimeLockedWalletFactory from "./contracts/TimeLockedWalletFactory.json";
 import BiconomyToken from "./contracts/BiconomyToken.json";
 import getWeb3 from "./getWeb3";
 
-import { Tabs, Tab } from 'react-bootstrap'
+import { Tabs, Tab, Table } from 'react-bootstrap'
 
 import "./App.css";
 import NewWallet from "./components/NewWallet";
@@ -225,34 +225,38 @@ class App extends Component {
             </div>
             <div className="row">
               <div className="col-12 nopadding">
-                <table id="wallets-table" className="" style={{ margin: 'auto' }}>
-                  <tbody>
+                {/* <table id="wallets-table" className="" style={{ margin: 'auto' }}> */}
+                <Table striped bordered hover size="sm">
+
+                  <thead>
                     <tr>
                       <th>To</th>
                       <th>Wallet</th>
                     </tr>
+                  </thead>
+                  <tbody>
                     {
                       wallets && Object.keys(wallets).length && Object.keys(wallets).map((r) => {
                         return (
                           <tr>
-                            <td style={{ border: `1px solid black`, padding: 5 }}>
-                              {r}
+                            <td >
+                              <p style={{ margin: 0, padding: 5, wordBreak: 'break-all' }}>{r}</p>
                             </td>
-                            {wallets[r] && wallets[r].length && wallets[r].map(z => {
-                              return (
-                                <tr>
-                                  <td style={{ border: `1px solid black`, padding: 5 }}>
-                                    {z}
-                                  </td>
-                                </tr>
-                              )
-                            })}
+                            <td>
+                              {wallets[r] && wallets[r].length && wallets[r].map(z => {
+                                return (
+                                  <div >
+                                    <p style={{ margin: 0, padding: 5, wordBreak: 'break-all' }}>{z}</p>
+                                  </div>
+                                )
+                              })}
+                            </td>
                           </tr>
                         )
                       })
                     }
                   </tbody>
-                </table>
+                </Table>
               </div>
             </div>
           </div>
