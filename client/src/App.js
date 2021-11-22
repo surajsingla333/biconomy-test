@@ -202,7 +202,7 @@ class App extends Component {
     }
     return (
       <div className="App">
-        <div id="dapp" className="container">
+        <div id="dapp" className="container" style={{ paddingTop: 30 }}>
 
           <Tabs defaultActiveKey="newWallet"
             id="uncontrolled-tab-example" className="mb-3">
