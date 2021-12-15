@@ -7,14 +7,14 @@ const getWeb3 = () =>
     window.addEventListener("load", async () => {
       // Modern dapp browsers...
       if (window.ethereum) {
-        const biconomy = new Biconomy(window.ethereum, { apiKey: process.env.REACT_APP_BICONOMY_TOKEN });
-        const web3 = new Web3(biconomy);
-        const web3Eth = new Web3(window.ethereum);
+        // const biconomy = new Biconomy(window.ethereum, { apiKey: process.env.REACT_APP_BICONOMY_TOKEN });
+        // const web3 = new Web3(biconomy);
+        const web3 = new Web3(window.ethereum);
         try {
           // Request account access if needed
           await window.ethereum.enable();
           // Accounts now exposed
-          resolve({ web3Eth, web3, biconomy });
+          resolve({ web3 });
         } catch (error) {
           reject(error);
         }

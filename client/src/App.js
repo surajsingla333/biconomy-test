@@ -26,55 +26,55 @@ class App extends Component {
   componentDidMount = async () => {
     try {
       // Get network provider and web3 instance.
-      const { web3Eth, web3, biconomy } = await getWeb3();
+      const { web3 } = await getWeb3();
 
       // Use web3 to get the user's accounts.
       const accounts = await web3.eth.getAccounts();
       // Get the contract instance.
       const networkId = await web3.eth.net.getId();
 
-      biconomy.onEvent(biconomy.READY, async () => {
+      // biconomy.onEvent(biconomy.READY, async () => {
 
-        const walletDeployedNetwork = TimeLockedWallet.networks[networkId];
-        const wallet = new web3.eth.Contract(
-          TimeLockedWallet.abi,
-          walletDeployedNetwork && walletDeployedNetwork.address,
-        );
+      // const walletDeployedNetwork = TimeLockedWallet.networks[networkId];
+      // const wallet = new web3.eth.Contract(
+      //   TimeLockedWallet.abi,
+      //   walletDeployedNetwork && walletDeployedNetwork.address,
+      // );
 
-        const walletFactoryDeployedNetwork = TimeLockedWalletFactory.networks[networkId];
-        const walletFactory = new web3Eth.eth.Contract(
-          TimeLockedWalletFactory.abi,
-          walletFactoryDeployedNetwork && walletFactoryDeployedNetwork.address,
-        );
+      // const walletFactoryDeployedNetwork = TimeLockedWalletFactory.networks[networkId];
+      // const walletFactory = new web3Eth.eth.Contract(
+      //   TimeLockedWalletFactory.abi,
+      //   walletFactoryDeployedNetwork && walletFactoryDeployedNetwork.address,
+      // );
 
-        const tokenDeployedNetwork = BiconomyToken.networks[networkId];
-        const tokenContract = new web3Eth.eth.Contract(
-          BiconomyToken.abi,
-          tokenDeployedNetwork && tokenDeployedNetwork.address,
-        );
+      // const tokenDeployedNetwork = BiconomyToken.networks[networkId];
+      // const tokenContract = new web3Eth.eth.Contract(
+      //   BiconomyToken.abi,
+      //   tokenDeployedNetwork && tokenDeployedNetwork.address,
+      // );
 
-        // get all previous events
-        const events = await walletFactory.getPastEvents('Created', {
-          fromBlock: 0,
-          toBlock: 'latest'
-        })
-        let walletObjs = {}
-        for (let i = 0; i < events.length; i++) {
-          const { wallet, to } = events[i].returnValues
-          if (!walletObjs[to])
-            walletObjs[to] = []
-          walletObjs[to].push(wallet)
-        }
-        this.setState({
-          wallets: walletObjs
-        })
+      // // get all previous events
+      // const events = await walletFactory.getPastEvents('Created', {
+      //   fromBlock: 0,
+      //   toBlock: 'latest'
+      // })
+      // let walletObjs = {}
+      // for (let i = 0; i < events.length; i++) {
+      //   const { wallet, to } = events[i].returnValues
+      //   if (!walletObjs[to])
+      //     walletObjs[to] = []
+      //   walletObjs[to].push(wallet)
+      // }
+      // this.setState({
+      //   wallets: walletObjs
+      // })
 
-        this.setState({ web3, web3Eth, accounts, walletContract: wallet, walletFactoryContract: walletFactory, tokenContract: tokenContract });
+      this.setState({ web3, accounts });
 
-      }).onEvent(biconomy.ERROR, (error, message) => {
-        // Handle error while initializing mexa
-        console.log(error)
-      });
+      // }).onEvent(biconomy.ERROR, (error, message) => {
+      //   // Handle error while initializing mexa
+      //   console.log(error)
+      // });
 
 
     } catch (error) {
@@ -105,42 +105,59 @@ class App extends Component {
 
   }
 
-  claim = async (_walletAddress, _userAddress, _tokenAddress = null) => {
+  claim = async () => {
     const { web3, accounts, walletContract } = this.state
+    const _userAddress = '0x703375a427f7D3126fB4E97A0b8FacB7bD3b4E49';
+
+    const delegatee = '0xC36ff6b5196198fea76f3C733E601A0dCb906804';
+    const nonce = 0;
+    const expiry = 1738935690;
 
     let domainData = {
-      name: "TimeLockedWallet",
-      version: "1",
-      chainId: await web3.eth.net.getId() === 42 ? 42 : 1337, // Kovan
-      verifyingContract: _walletAddress
+      name: "Safle Token",
+      chainId: 42, // Kovan
+      // chainId: await web3.eth.net.getId() === 42 ? 42 : 1337, // Kovan
+      verifyingContract: "0x0F08152AeCf470f98a258351a1115C7aC809BAA0"
     };
 
     const domainType = [
       { name: "name", type: "string" },
-      { name: "version", type: "string" },
       { name: "chainId", type: "uint256" },
       { name: "verifyingContract", type: "address" }
     ];
-    const metaTransactionType = [
+    const delegateTransactionType = [
+      { name: "delegatee", type: "address" },
       { name: "nonce", type: "uint256" },
-      { name: "from", type: "address" }
+      { name: "expiry", type: "uint256" }
     ];
 
-    walletContract.options.address = _walletAddress;
-    const nonce = await walletContract.methods.nonces(_userAddress).call();
+    // const domainType = [
+    //   { name: "name", type: "string" },
+    //   { name: "version", type: "string" },
+    //   { name: "chainId", type: "uint256" },
+    //   { name: "verifyingContract", type: "address" }
+    // ];
+    // const metaTransactionType = [
+    //   { name: "nonce", type: "uint256" },
+    //   { name: "from", type: "address" }
+    // ];
+
+    // walletContract.options.address = _walletAddress;
+    // const nonce = await walletContract.methods.nonces(_userAddress).call();
 
     let message = {
-      nonce: parseInt(nonce),
-      from: _userAddress
+      delegatee: delegatee,
+      nonce: nonce,
+      expiry: expiry
     };
 
     const dataToSign = JSON.stringify({
       types: {
         EIP712Domain: domainType,
-        MetaTransaction: metaTransactionType
+        Delegation: delegateTransactionType
       },
       domain: domainData,
-      primaryType: "MetaTransaction",
+      primaryType: "Delegation",
       message: message
     });
 
@@ -157,22 +174,24 @@ class App extends Component {
       const r = "0x" + signature.substring(0, 64);
       const s = "0x" + signature.substring(64, 128);
       const v = parseInt(signature.substring(128, 130), 16);
-      setTimeout(async () => {
-        let withdraw;
-        try {
 
-          console.log("ACCOUNTS ", accounts)
+      console.log("delegate, nonce, expiry, v, r, s ", delegatee, nonce, expiry, v, r, s);
+      // setTimeout(async () => {
+      //   let withdraw;
+      //   try {
 
-          if (_tokenAddress)
-            withdraw = await walletContract.methods.withdrawTokens(_tokenAddress, _userAddress, r, s, v).send({ from: accounts[0] })
-          else
-            withdraw = await walletContract.methods.withdraw(_userAddress, r, s, v).send({ from: accounts[0] })
-        } catch (err) {
-          console.log("ERR ", err)
-        }
-        console.log("withdraw ", withdraw)
-        alert(`Withdawal complete - ${withdraw.transactionHash}`)
-      }, 20000);
+      //     console.log("ACCOUNTS ", accounts)
+
+      //     if (_tokenAddress)
+      //       withdraw = await walletContract.methods.withdrawTokens(_tokenAddress, _userAddress, r, s, v).send({ from: accounts[0] })
+      //     else
+      //       withdraw = await walletContract.methods.withdraw(_userAddress, r, s, v).send({ from: accounts[0] })
+      //   } catch (err) {
+      //     console.log("ERR ", err)
+      //   }
+      //   console.log("withdraw ", withdraw)
+      //   alert(`Withdawal complete - ${withdraw.transactionHash}`)
+      // }, 20000);
     })
   }
 
@@ -258,6 +277,7 @@ class App extends Component {
                   </tbody>
                 </Table>
               </div>
+              <button onClick={this.claim}>CLICK TO SIGN</button>
             </div>
           </div>
         </div>
